@@ -89,15 +89,15 @@ Przykładowy zestaw ramek testowych GPS wraz z opisem danych:
 ```text
 $GPRMC,185919.00,A,4107.038,N,01131.000,E,0.5,45.2,141125,,,A6C
 ```
-# RMC - Recommended Minimum Specific GPS/Transit Data
-# Czas UTC: 18:59:19.00
-# Status: A (aktywny)
-# Szerokość: 41°07.038' N
-# Długość: 11°31.000' E
-# Prędkość: 0.5 węzła
-# Kurs: 45.2°
-# Data: 14/11/2025
-# Suma kontrolna: A6C
+- RMC - Recommended Minimum Specific GPS/Transit Data
+- Czas UTC: 18:59:19.00
+- Status: A (aktywny)
+- Szerokość: 41°07.038' N
+- Długość: 11°31.000' E
+- Prędkość: 0.5 węzła
+- Kurs: 45.2°
+- Data: 14/11/2025
+- Suma kontrolna: A6C
 
 ```text
 $GPGGA,185919.00,4107.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,47
