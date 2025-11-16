@@ -1,0 +1,12 @@
+../Core/Src/main.c:97:6:SplitTextSimple	32	static
+../Core/Src/main.c:113:7:convertNMEAToDecimal	32	static
+../Core/Src/main.c:122:6:parseGGA	152	static
+../Core/Src/main.c:166:6:parseRMC	152	static
+../Core/Src/main.c:201:6:addNewLine	24	static
+../Core/Src/main.c:213:6:SplitTextWithIndex	40	static
+../Core/Src/main.c:233:6:formatAndDisplayData	48	static
+../Core/Src/main.c:297:5:main	128	static
+../Core/Src/main.c:417:6:SystemClock_Config	88	static
+../Core/Src/main.c:465:6:MX_USART2_UART_Init	8	static
+../Core/Src/main.c:506:6:HAL_UART_RxCpltCallback	16	static
+../Core/Src/main.c:534:6:Error_Handler	4	static,ignoring_inline_asm
