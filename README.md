@@ -94,11 +94,10 @@ $GPGSV,2,1,08,04,67,045,39,05,56,123,40,09,45,250,35,12,32,175,3871
 $GPGSV,2,2,08,24,25,067,30,29,20,310,28,31,15,180,25,02,10,040,2076
 $GPGLL,4107.038,N,01131.000,E,185919.00,A,A*7C
 ```
-
+RMC - Recommended Minimum Specific GPS/Transit Data
 ```text
 $GPRMC,185919.00,A,4107.038,N,01131.000,E,0.5,45.2,141125,,,A6C
 ```
-RMC - Recommended Minimum Specific GPS/Transit Data
 - Czas UTC: 18:59:19.00
 - Status: A (aktywny)
 - Szerokość: 41°07.038' N
@@ -108,10 +107,10 @@ RMC - Recommended Minimum Specific GPS/Transit Data
 - Data: 14/11/2025
 - Suma kontrolna: A6C
 
+GGA - Global Positioning System Fix Data
 ```text
 $GPGGA,185919.00,4107.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,47
 ```
-GGA - Global Positioning System Fix Data
 - Czas UTC: 18:59:19.00
 - Szerokość: 41°07.038' N
 - Długość: 11°31.000' E
