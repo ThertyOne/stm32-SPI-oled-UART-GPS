@@ -89,7 +89,7 @@ Przykładowy zestaw ramek testowych GPS wraz z opisem danych:
 ```text
 $GPRMC,185919.00,A,4107.038,N,01131.000,E,0.5,45.2,141125,,,A6C
 ```
-- RMC - Recommended Minimum Specific GPS/Transit Data
+RMC - Recommended Minimum Specific GPS/Transit Data
 - Czas UTC: 18:59:19.00
 - Status: A (aktywny)
 - Szerokość: 41°07.038' N
@@ -102,15 +102,15 @@ $GPRMC,185919.00,A,4107.038,N,01131.000,E,0.5,45.2,141125,,,A6C
 ```text
 $GPGGA,185919.00,4107.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,47
 ```
-# GGA - Global Positioning System Fix Data
-# Czas UTC: 18:59:19.00
-# Szerokość: 41°07.038' N
-# Długość: 11°31.000' E
-# Status fix: 1 (GPS fix)
-# Liczba satelitów: 8
-# Dokładność HDOP: 0.9
-# Wysokość nad poziomem morza: 545.4 m
-# Geoid Separation: 46.9 m
+GGA - Global Positioning System Fix Data
+- Czas UTC: 18:59:19.00
+- Szerokość: 41°07.038' N
+- Długość: 11°31.000' E
+- Status fix: 1 (GPS fix)
+- Liczba satelitów: 8
+- Dokładność HDOP: 0.9
+- Wysokość nad poziomem morza: 545.4 m
+- Geoid Separation: 46.9 m
 
 ---
 
