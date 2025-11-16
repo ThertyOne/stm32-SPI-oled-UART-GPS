@@ -88,6 +88,7 @@ Przykładowy zestaw ramek testowych GPS wraz z opisem danych:
 
 ```text
 $GPRMC,185919.00,A,4107.038,N,01131.000,E,0.5,45.2,141125,,,A6C
+```
 # RMC - Recommended Minimum Specific GPS/Transit Data
 # Czas UTC: 18:59:19.00
 # Status: A (aktywny)
@@ -98,14 +99,9 @@ $GPRMC,185919.00,A,4107.038,N,01131.000,E,0.5,45.2,141125,,,A6C
 # Data: 14/11/2025
 # Suma kontrolna: A6C
 
-$GPVTG,45.2,T,,M,0.5,N,0.9,K,A23
-# VTG - Course Over Ground and Ground Speed
-# Kurs względem północy: 45.2°
-# Prędkość węzły: 0.5
-# Prędkość km/h: 0.9
-# Suma kontrolna: A23
-
+```text
 $GPGGA,185919.00,4107.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,47
+```
 # GGA - Global Positioning System Fix Data
 # Czas UTC: 18:59:19.00
 # Szerokość: 41°07.038' N
@@ -115,36 +111,6 @@ $GPGGA,185919.00,4107.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,47
 # Dokładność HDOP: 0.9
 # Wysokość nad poziomem morza: 545.4 m
 # Geoid Separation: 46.9 m
-
-$GPGSA,A,3,04,05,09,12,24,29,31,02,,,,,1.8,1.0,1.533
-# GSA - GPS DOP and Active Satellites
-# Tryb: A (automatyczny)
-# Typ fix: 3 (3D fix)
-# Satelity użyte w obliczeniach: 04,05,09,12,24,29,31,02
-# PDOP: 1.8, HDOP: 1.0, VDOP: 1.533
-
-$GPGSV,2,1,08,04,67,045,39,05,56,123,40,09,45,250,35,12,32,175,38,71
-# GSV - Satellites in View
-# Liczba wiadomości: 2, numer wiadomości: 1
-# Liczba satelitów w widoku: 8
-# Satelity z informacjami: 
-# 04: elewacja 67°, azymut 045°, SNR 39
-# 05: elewacja 56°, azymut 123°, SNR 40
-# 09: elewacja 45°, azymut 250°, SNR 35
-# 12: elewacja 32°, azymut 175°, SNR 38
-
-$GPGSV,2,2,08,24,25,067,30,29,20,310,28,31,15,180,25,02,10,040,20,76
-# GSV - Druga część satelitów w widoku
-# Satelity: 24,29,31,02 z elewacją, azymutem i SNR
-
-$GPGLL,4107.038,N,01131.000,E,185919.00,A,A*7C
-# GLL - Geographic Position - Latitude/Longitude
-# Szerokość: 41°07.038' N
-# Długość: 11°31.000' E
-# Czas UTC: 18:59:19.00
-# Status: A (aktywny)
-# Suma kontrolna: 7C
-```
 
 ---
 
