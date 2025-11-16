@@ -85,6 +85,8 @@ Pozwoliło to na:
 - zasymulowanie pełnego strumienia NMEA.
 
 Przykładowy zestaw ramek testowych:
+
+
 `
 $GPRMC,185919.00,A,4107.038,N,01131.000,E,0.5,45.2,141125,,,A6C
 $GPVTG,45.2,T,,M,0.5,N,0.9,K,A23
