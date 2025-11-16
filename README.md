@@ -4,11 +4,12 @@
 Projekt realizuje odczyt danych z modułu GPS **GY-NEO6MV2** poprzez UART oraz prezentację najważniejszych parametrów na wyświetlaczu **OLED 0,96" SSD1306 128×64** sterowanym przez **SPI**.
 
 Wyświetlane są:
+- Data (DD/MM/YY)
 - Czas UTC
 - Status fix'a (A/V)
-- Szerokość geograficzna
-- Długość geograficzna
-- Wysokość nad poziomem morza
+- Szerokość geograficzna (Lat)
+- Długość geograficzna (Lon)
+- Wysokość nad poziomem morza (Alt)
 - Liczba satelitów (opcjonalnie)
 - Prędkość (opcjonalnie)
 
@@ -160,9 +161,21 @@ Dodatkowo kod:
 ```c
 float convertNMEAToDecimal(const char* nmea)
 {
+    // Konwersja całej wartości NMEA (np. 4107.038) na float.
     float val = atof(nmea);
+    
+    // 1. Wyodrębnienie stopni (część całkowita przed minutami). 
+    // Dzielenie przez 100 przesuwa kropkę: 4107.038 / 100.0f = 41.07038
+    // Rzutowanie na int bierze część całkowitą: 41
     int degrees = (int)(val / 100.0f);
+    
+    // 2. Wyodrębnienie minut. 
+    // Odjęcie stopni * 100: 4107.038 - (41 * 100) = 4107.038 - 4100.0f = 7.038
     float minutes = val - degrees * 100.0f;
+    
+    // 3. Konwersja i zwrot.
+    // Wzór: Stopnie dziesiętne = Stopnie + (Minuty / 60)
+    // 41 + (7.038 / 60.0f) = 41.1173
     return degrees + minutes / 60.0f;
 }
 ```
@@ -171,23 +184,50 @@ float convertNMEAToDecimal(const char* nmea)
 ```c
 void parseGGA(const char* line)
 {
+    // Kopiujemy oryginalną linię, ponieważ funkcja strtok() modyfikuje string wejściowy.
     char copy[GPS_BUFFER_SIZE];
     strcpy(copy, line);
 
-    char *token = strtok(copy, ",");
-    int field_idx = 0;
+    char *token;
+    int field_idx = 0; // Licznik pól, zaczyna od 0 ($GPGGA)
 
+    // Dzielimy string na tokeny (pola) za pomocą przecinka jako separatora.
+    token = strtok(copy, ",");
     while(token != NULL) {
         switch(field_idx) {
+            // Pole 2: Szerokość geograficzna NMEA (ddmm.mmmm)
             case 2: latitude = convertNMEAToDecimal(token); break;
-            case 3: if(token[0]=='S') latitude = -latitude; break;
+            
+            // Pole 3: Kierunek N/S. Jeśli "S" (Południe), ustawiamy wartość ujemną.
+            case 3: 
+                // Zapisujemy znak kierunku dla wyświetlenia (nawet jeśli już jest ujemna)
+                ns = token[0]; 
+                if(ns == 'S') latitude = -latitude; 
+                break;
+            
+            // Pole 4: Długość geograficzna NMEA (dddmm.mmmm)
             case 4: longitude = convertNMEAToDecimal(token); break;
-            case 5: if(token[0]=='W') longitude = -longitude; break;
+            
+            // Pole 5: Kierunek E/W. Jeśli "W" (Zachód), ustawiamy wartość ujemną.
+            case 5: 
+                // Zapisujemy znak kierunku dla wyświetlenia
+                ew = token[0];
+                if(ew == 'W') longitude = -longitude; 
+                break;
+                
+            // Pole 7: Liczba użytych satelitów (do wyliczenia pozycji)
             case 7: satellites = atoi(token); break;
+            
+            // Pole 9: Wysokość anteny nad poziomem morza (w metrach)
             case 9: altitude = atof(token); break;
+            
+            // Inne pola (czas, jakość fix, HDOP, separacja geoidy) są ignorowane lub parsowane w RMC
+            default:
+                break; 
         }
-        token = strtok(NULL, ",");
+        
         field_idx++;
+        token = strtok(NULL, ","); // Przechodzimy do następnego tokena
     }
 }
 ```
@@ -196,6 +236,7 @@ void parseGGA(const char* line)
 ```c
 void parseRMC(const char* line)
 {
+    // Kopiujemy linię, by nie modyfikować oryginalnego bufora.
     char copy[GPS_BUFFER_SIZE];
     strcpy(copy, line);
 
@@ -204,11 +245,31 @@ void parseRMC(const char* line)
 
     while(token != NULL) {
         switch(field_idx) {
-            case 1: strncpy(time_field, token, 10); break;
-            case 2: fix_valid = (token[0]=='A'); break;
-            case 7: speed_kmh = atof(token) * 1.852f; break;
-            case 9: strncpy(date_field, token, 6); break;
+            // Pole 1: Czas UTC (hhmmss.sss). Przechowujemy go w time_field.
+            case 1: 
+                strncpy(time_field, token, 10); 
+                time_field[10] = '\0'; // Zapewnienie null-terminatora
+                break;
+
+            // Pole 2: Status A/V. 'A' (Active) = Fix jest ważny.
+            case 2: 
+                fix_valid = (token[0] == 'A'); 
+                break;
+                
+            // Pole 7: Prędkość nad ziemią w węzłach (knots).
+            case 7: 
+                // Konwersja na float i przeliczenie na km/h (1 węzeł ≈ 1.852 km/h)
+                speed_knots = atof(token);
+                speed_kmh = speed_knots * 1.852f;
+                break;
+
+            // Pole 9: Data (DDMMYY). Przechowujemy ją w date_field.
+            case 9: 
+                strncpy(date_field, token, 6); 
+                date_field[6] = '\0'; // Zapewnienie null-terminatora
+                break;
         }
+
         token = strtok(NULL, ",");
         field_idx++;
     }
@@ -216,12 +277,34 @@ void parseRMC(const char* line)
 ```
 
 
-### Wyświetlanie danych na OLED SSD1306 w 5 liniach
+### Wyświetlanie danych na OLED SSD1306 w 6 liniach
+
 ```c
-sprintf(lines[0], "UTC: %s | %s", formatted_time, fix_valid ? "(A)" : "(V)");
-sprintf(lines[1], "SAT: %02d | SPD: %.1f", satellites, speed_kmh);
-sprintf(lines[2], "Lat: %.3f %c", fabsf(latitude), ns);
-sprintf(lines[3], "Lon: %.3f %c", fabsf(longitude), ew);
-sprintf(lines[4], "Alt: %.1f m", altitude);
+// Zakładamy, że formatowanie daty (date_field -> formatted_date)
+// oraz czasu (time_field -> formatted_time) zostało wykonane wcześniej.
+
+// Linia 0: Data i Status Fix (np. Date: 14/11/25 | (A))
+char *fix_status = fix_valid ? "(A)" : "(V)";
+sprintf(lines[0], "Date: %s | %s", formatted_date, fix_status);
+
+// Linia 1: Czas (np. Time: 18:59:19)
+sprintf(lines[1], "Time: %s", formatted_time);
+
+// Linia 2: Prędkość i Liczba Satelitów (np. Sat: 08 Spd: 0.9 km/h)
+sprintf(lines[2], "Sat: %d Spd: %.1f km/h", satellites, speed_kmh);
+
+if (satellites > 0) {
+    // Linia 3: Szerokość Geograficzna (np. Lat: 41.117 N)
+    sprintf(lines[3], "Lat: %.3f %c", fabsf(latitude), ns);
+    
+    // Linia 4: Długość Geograficzna (np. Lon: 11.517 E)
+    sprintf(lines[4], "Lon: %.3f %c", fabsf(longitude), ew);
+    
+    // Linia 5: Wysokość n.p.m. (np. Alt: 545.4 m)
+    sprintf(lines[5], "Alt: %.1f m", altitude);
+} else {
+    // Linia 3 (jeśli brak fixa)
+    sprintf(lines[3], "Waiting for data...");
+}
 ```
 
