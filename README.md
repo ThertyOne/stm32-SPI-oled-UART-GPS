@@ -85,6 +85,7 @@ Pozwoliło to na:
 - zasymulowanie pełnego strumienia NMEA.
 
 Przykładowy zestaw ramek testowych:
+`
 $GPRMC,185919.00,A,4107.038,N,01131.000,E,0.5,45.2,141125,,,A6C
 $GPVTG,45.2,T,,M,0.5,N,0.9,K,A23
 $GPGGA,185919.00,4107.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,47
@@ -92,7 +93,7 @@ $GPGSA,A,3,04,05,09,12,24,29,31,02,,,,,1.8,1.0,1.533
 $GPGSV,2,1,08,04,67,045,39,05,56,123,40,09,45,250,35,12,32,175,3871
 $GPGSV,2,2,08,24,25,067,30,29,20,310,28,31,15,180,25,02,10,040,2076
 $GPGLL,4107.038,N,01131.000,E,185919.00,A,A*7C
-
+`
 
 ---
 
@@ -196,6 +197,6 @@ sprintf(lines[0], "UTC: %s | %s", formatted_time, fix_valid ? "(A)" : "(V)");
 sprintf(lines[1], "SAT: %02d | SPD: %.1f", satellites, speed_kmh);
 sprintf(lines[2], "Lat: %.3f %c", fabsf(latitude), ns);
 sprintf(lines[3], "Lon: %.3f %c", fabsf(longitude), ew);
-```
 sprintf(lines[4], "Alt: %.1f m", altitude);
+```
 
