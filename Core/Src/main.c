@@ -43,7 +43,7 @@
 /* USER CODE BEGIN PD */
 #define GPS_BUFFER_SIZE 128
 #define MAX_CHARS_PER_LINE 20
-#define MAX_LINES 5
+#define MAX_LINES 6
 
 
 /* USER CODE END PD */
@@ -232,56 +232,67 @@ void SplitTextWithIndex(const char *input, char lines[MAX_LINES][MAX_CHARS_PER_L
 // Funkcja do formatowania i wyświetlania danych z globalnych zmiennych
 void formatAndDisplayData(char lines[MAX_LINES][MAX_CHARS_PER_LINE+1])
 {
-    // ... (Kod do formatowania czasu pozostaje bez zmian) ...
+    // Czas NMEA: hhmmss.sss (10 znaków + '\0')
     char formatted_time[9]; // Wystarczy na hh:mm:ss + '\0'
+    char formatted_date[9]; // Wystarczy na DD/MM/YY + '\0'
 
-    // Upewniamy się, że time_field ma co najmniej 6 znaków
+    // 1. FORMATOWANIE CZASU
     if (strlen(time_field) >= 6) {
-        // Kopiowanie godzin (hh) i dodanie ':'
         strncpy(formatted_time, time_field, 2);
         formatted_time[2] = ':';
-
-        // Kopiowanie minut (mm) i dodanie ':'
         strncpy(formatted_time + 3, time_field + 2, 2);
         formatted_time[5] = ':';
-
-        // Kopiowanie sekund (ss)
         strncpy(formatted_time + 6, time_field + 4, 2);
         formatted_time[8] = '\0';
     } else {
-        // Jeśli pole czasu jest puste/niekompletne
         strcpy(formatted_time, "--:--:--");
     }
 
-    // Czyścimy górną część ekranu na nowe, sformatowane dane
-    memset(lines[0], 0, MAX_CHARS_PER_LINE+1);
-    memset(lines[1], 0, MAX_CHARS_PER_LINE+1);
-    memset(lines[2], 0, MAX_CHARS_PER_LINE+1);
-    memset(lines[3], 0, MAX_CHARS_PER_LINE+1);
-    memset(lines[4], 0, MAX_CHARS_PER_LINE+1);
+    // 2. FORMATOWANIE DATY <-- PRZYWRÓCONE!
+    if (strlen(date_field) >= 6) {
+        strncpy(formatted_date, date_field, 2);
+        formatted_date[2] = '/';
+        strncpy(formatted_date + 3, date_field + 2, 2);
+        formatted_date[5] = '/';
+        strncpy(formatted_date + 6, date_field + 4, 2);
+        formatted_date[8] = '\0';
+    } else {
+        strcpy(formatted_date, "--/--/--");
+    }
 
-    // Linia 0: Czas i Status Fixa
+
+    // Czyścimy WSZYSTKIE 6 linii (indeksy 0-5)
+    for (int i = 0; i < MAX_LINES; i++) {
+        memset(lines[i], 0, MAX_CHARS_PER_LINE+1);
+    }
+
+    // --- 6 LINII DANYCH ---
+
+    // Linia 0: DATA i Status FIX
     char *fix_status = fix_valid ? "(A)" : "(V)";
-    sprintf(lines[0], "UTC: %s | %s", formatted_time, fix_status);
+    sprintf(lines[0], "Date: %s | %s", formatted_date, fix_status);
 
-    // Linia 1: Prędkość i Liczba Satelitów
-    //sprintf(lines[1], "Sat: %d Spd: %.1f km/h", satellites, speed_kmh);
+    // Linia 1: Czas
+    sprintf(lines[1], "Time: %s", formatted_time);
 
-    // Linia 2: Pozycja (tylko jeśli jest fix lub pozycja jest != 0)
+    // Linia 2: Prędkość i Liczba Satelitów <-- PRZYWRÓCONA!
+    //sprintf(lines[2], "Sat: %d Spd: %.1f km/h", satellites, speed_kmh);
+
+    // Sprawdzenie, czy mamy dane pozycji
     if (satellites > 0) {
-            // Linia 2: Szerokość Geograficzna (Latitude)
-            sprintf(lines[2], "Lat: %.3f %c", fabsf(latitude), ns);
+        // Linia 3: Szerokość Geograficzna (Latitude)
+        sprintf(lines[3], "Lat: %.3f %c", fabsf(latitude), ns);
 
-            // Linia 3: Długość Geograficzna (Longitude)
-            sprintf(lines[3], "Lon: %.3f %c", fabsf(longitude), ew);
+        // Linia 4: Długość Geograficzna (Longitude)
+        sprintf(lines[4], "Lon: %.3f %c", fabsf(longitude), ew);
 
-            // Linia 4: Wysokość n.p.m. <-- NOWA LINIA
-            sprintf(lines[4], "Alt: %.1f m", altitude);
+        // Linia 5: Wysokość n.p.m.
+        sprintf(lines[5], "Alt: %.1f m", altitude);
 
-        } else {
-            // Jeśli nie ma fixa, wyświetlamy tylko jeden komunikat
-            sprintf(lines[2], "Waiting for data...");
-        }
+    } else {
+        // Jeśli nie ma fixa, wyświetlamy komunikat w Linii 3 (po Sat/Speed)
+        sprintf(lines[3], "Waiting for data...");
+    }
 }
 /* USER CODE END PFP */
 
