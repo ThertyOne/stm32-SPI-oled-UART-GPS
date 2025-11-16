@@ -125,7 +125,7 @@ $GPGGA,185919.00,4107.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,47
 
 ## 🖥️ Przykładowy ekran – GPS
 
-![GPS Screen](gps_screen_2.jpg)
+![GPS Screen](gps_screen_2.png)
 
 ---
 
