@@ -153,9 +153,80 @@ Dodatkowo kod:
 - automatycznie odróżnia aktywny/nieaktywny fix GPS
 
 ---
+## 🧩 Fragmenty kodu – inicjalizacja OLED i przerwanie UART
+```c
+// RESET fizyczny
+HAL_GPIO_WritePin(SSD1306_RESET_GPIO_Port, SSD1306_RESET_Pin, GPIO_PIN_RESET);
+HAL_Delay(50);
+HAL_GPIO_WritePin(SSD1306_RESET_GPIO_Port, SSD1306_RESET_Pin, GPIO_PIN_SET);
+HAL_Delay(50);
 
+// Inicjalizacja OLED
+SSD1306_SpiInit(&hspi1);
+SSD1306_Init();
+SSD1306_Clear(BLACK);
+SSD1306_Display();
+
+// Start odbioru UART w trybie przerwań
+HAL_UART_Receive_IT(&huart2, &rx_byte, 1);
+```
+```c
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+    if(huart->Instance == USART2) {
+        // Sprawdzamy, czy odebrany bajt to nie koniec linii (\n, \r)
+        if(rx_byte != '\n' && rx_byte != '\r') {
+            if(gps_idx < GPS_BUFFER_SIZE - 1) {
+                gps_buffer[gps_idx++] = rx_byte; // Dopisywanie bajtu do bufora
+            }
+        } else {
+            // Odebrano znak końca linii:
+            if(gps_idx > 0) { // Mamy jakieś dane w buforze
+                gps_buffer[gps_idx] = '\0'; // Zamykamy string (NULL-terminator)
+                gps_line_ready = 1;         // Ustawiamy flagę gotowości dla pętli głównej
+                gps_idx = 0;
+            }
+        }
+        // Ponowne włączenie nasłuchiwania na pojedynczy bajt (kluczowe!)
+        HAL_UART_Receive_IT(&huart2, &rx_byte, 1);
+    }
+}
+```
+## 🧩 Fragmenty kodu – pętla główna
+```c
+// Wewnątrz while (1)
+while (1)
+{
+    SSD1306_Clear(BLACK);
+
+    // 1. Parsowanie: ZAWSZE parsuj i aktualizuj dane globalne, jeśli przyszła nowa ramka
+    if (gps_line_ready) {
+        gps_line_ready = 0;
+
+        // Identyfikacja ramki NMEA i wywołanie odpowiedniego parsera
+        if (strncmp(gps_buffer, "$GPGGA", 6) == 0) {
+            parseGGA(gga_buffer);
+        }
+        else if (strncmp(gps_buffer, "$GPRMC", 6) == 0) {
+            parseRMC(rmc_buffer);
+        }
+    }
+
+    // 2. Formatowanie i przygotowanie tekstu na wyświetlacz
+    formatAndDisplayData(lines);
+
+    // 3. Wyświetlanie: Rysowanie sformatowanych linii
+    for (int i = 0; i < MAX_LINES; i++) {
+        if (lines[i][0] != '\0') {
+            GFX_DrawString(0, i * 10, lines[i], WHITE, BLACK);
+        }
+    }
+
+    SSD1306_Display();
+    HAL_Delay(100);
+}
+```
 ## 🧩 Fragmenty kodu – parsowanie i obróbka danych
-
 ### Konwersja współrzędnych NMEA → stopnie dziesiętne
 
 ```c
