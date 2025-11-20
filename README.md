@@ -252,6 +252,7 @@ float convertNMEAToDecimal(const char* nmea)
 ```
 
 ### Parsowanie danych
+
 ```mermaid
 flowchart TD
   A[START: main() - Inicjalizacja] --> B{Pętla nieskończona: while(1)}
