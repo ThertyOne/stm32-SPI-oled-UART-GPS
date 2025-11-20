@@ -283,7 +283,7 @@ if (satellites > 0) {
 ### Logika parsowania danych
 ```mermaid
 flowchart TD
-E --> F{Sprawdź prefiks gps_buffer}
+gps_buffer --> F{Sprawdź prefiks gps_buffer}
 
 F -- "$GPGGA" --> G[parseGGA]
 G --> G1[Skopiuj linię do bufora tymczasowego]
