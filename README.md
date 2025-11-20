@@ -252,7 +252,6 @@ float convertNMEAToDecimal(const char* nmea)
 ```
 
 ### Parsowanie danych
-
 ```mermaid
 flowchart TD
   A[START: main() - Inicjalizacja] --> B{Pętla nieskończona: while(1)}
@@ -276,8 +275,8 @@ flowchart TD
     J --> K[HAL_Delay(100)]
     K --> B
   end
-
 ```
+
 ### Wyświetlanie danych na OLED SSD1306 w 6 liniach
 
 ```c
