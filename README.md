@@ -257,7 +257,6 @@ float convertNMEAToDecimal(const char* nmea)
 flowchart TD
   A[START: main() - Inicjalizacja] --> B{Pętla nieskończona: while(1)}
 
-  subgraph Pętla_Glowna["co 100 ms"]
     B --> C[SSD1306_Clear(BLACK)]
     C --> D{gps_line_ready == 1?}
     D -- "TAK" --> E[gps_line_ready = 0]
@@ -276,6 +275,7 @@ flowchart TD
     J --> K[HAL_Delay(100)]
     K --> B
   end
+
 ```
 
 ### Wyświetlanie danych na OLED SSD1306 w 6 liniach
