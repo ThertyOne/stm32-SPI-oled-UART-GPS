@@ -255,26 +255,28 @@ float convertNMEAToDecimal(const char* nmea)
 
 ```mermaid
 flowchart TD
-  A[START: main() - Inicjalizacja] --> B{Pętla nieskończona: while(1)}
+  A[START: main - Inicjalizacja] --> B{Pętla nieskończona: while}
 
-    B --> C[SSD1306_Clear(BLACK)]
+  subgraph Pętla_Glowna["co 100 ms"]
+    B --> C[SSD1306_Clear]
     C --> D{gps_line_ready == 1?}
     D -- "TAK" --> E[gps_line_ready = 0]
     D -- "NIE" --> H
 
     E --> F{Sprawdź prefiks gps_buffer}
 
-    F -- "$GPGGA" --> F1[parseGGA(buffer) / Aktualizacja: Lat, Lon, Alt, Satelity]
-    F -- "$GPRMC" --> F2[parseRMC(buffer) / Aktualizacja: Status Fix, Data, Prędkość]
+    F -- "$GPGGA" --> F1[parseGGA / Aktualizacja: Lat, Lon, Alt, Satelity]
+    F -- "$GPRMC" --> F2[parseRMC / Aktualizacja: Status Fix, Data, Prędkość]
     F1 --> H
     F2 --> H
 
-    H[formatAndDisplayData(lines) / Konwersja i formatowanie danych GPS na tekst]
-    H --> I[GFX_DrawString(lines) / Rysowanie 6 linii tekstu na buforze OLED]
-    I --> J[SSD1306_Display() / Wysyłka bufora do wyświetlacza]
-    J --> K[HAL_Delay(100)]
+    H[formatAndDisplayData / Konwersja i formatowanie danych GPS na tekst]
+    H --> I[GFX_DrawString / Rysowanie 6 linii tekstu na buforze OLED]
+    I --> J[SSD1306_Display/ Wysyłka bufora do wyświetlacza]
+    J --> K[HAL_Delay]
     K --> B
   end
+
 
 ```
 
