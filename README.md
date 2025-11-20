@@ -251,103 +251,32 @@ float convertNMEAToDecimal(const char* nmea)
 }
 ```
 
-### Parsowanie ramki GGA (pozycja, wysokość)
-```c
-void parseGGA(const char* line)
-{
-    // Kopiujemy oryginalną linię, ponieważ funkcja strtok() modyfikuje string wejściowy.
-    char copy[GPS_BUFFER_SIZE];
-    strcpy(copy, line);
+### Parsowanie danych
 
-    char *token;
-    int field_idx = 0; // Licznik pól, zaczyna od 0 ($GPGGA)
+```mermaid
+graph TD
+    A[START: main() - Inicjalizacja] --> B{Pętla nieskończona: while(1)};
 
-    // Dzielimy string na tokeny (pola) za pomocą przecinka jako separatora.
-    token = strtok(copy, ",");
-    while(token != NULL) {
-        switch(field_idx) {
-            // Pole 2: Szerokość geograficzna NMEA (ddmm.mmmm)
-            case 2: latitude = convertNMEAToDecimal(token); break;
-            
-            // Pole 3: Kierunek N/S. Jeśli "S" (Południe), ustawiamy wartość ujemną.
-            case 3: 
-                // Zapisujemy znak kierunku dla wyświetlenia (nawet jeśli już jest ujemna)
-                ns = token[0]; 
-                if(ns == 'S') latitude = -latitude; 
-                break;
-            
-            // Pole 4: Długość geograficzna NMEA (dddmm.mmmm)
-            case 4: longitude = convertNMEAToDecimal(token); break;
-            
-            // Pole 5: Kierunek E/W. Jeśli "W" (Zachód), ustawiamy wartość ujemną.
-            case 5: 
-                // Zapisujemy znak kierunku dla wyświetlenia
-                ew = token[0];
-                if(ew == 'W') longitude = -longitude; 
-                break;
-                
-            // Pole 7: Liczba użytych satelitów (do wyliczenia pozycji)
-            case 7: satellites = atoi(token); break;
-            
-            // Pole 9: Wysokość anteny nad poziomem morza (w metrach)
-            case 9: altitude = atof(token); break;
-            
-            // Inne pola (czas, jakość fix, HDOP, separacja geoidy) są ignorowane lub parsowane w RMC
-            default:
-                break; 
-        }
+    subgraph Pętla Główna (co 100 ms)
+        B --> C[SSD1306_Clear(BLACK)];
+        C --> D{gps_line_ready == 1?};
+        D -- TAK --> E[gps_line_ready = 0];
+        D -- NIE --> H;
         
-        field_idx++;
-        token = strtok(NULL, ","); // Przechodzimy do następnego tokena
-    }
-}
+        E --> F{Sprawdź prefiks gps_buffer};
+        
+        F -- $GPGGA --> F1[parseGGA(buffer) / Aktualizacja: Lat, Lon, Alt, Satelity];
+        F -- $GPRMC --> F2[parseRMC(buffer) / Aktualizacja: Status Fix, Data, Prędkość];
+        F1 --> H;
+        F2 --> H;
+
+        H[formatAndDisplayData(lines) / Konwersja i formatowanie danych GPS na tekst];
+        H --> I[GFX_DrawString(lines) / Rysowanie 6 linii tekstu na buforze OLED];
+        I --> J[SSD1306_Display() / Wysyłka bufora do wyświetlacza];
+        J --> K[HAL_Delay(100)];
+        K --> B;
+    end
 ```
-
-### Parsowanie ramki RMC (czas, prędkość, data, status)
-```c
-void parseRMC(const char* line)
-{
-    // Kopiujemy linię, by nie modyfikować oryginalnego bufora.
-    char copy[GPS_BUFFER_SIZE];
-    strcpy(copy, line);
-
-    char *token = strtok(copy, ",");
-    int field_idx = 0;
-
-    while(token != NULL) {
-        switch(field_idx) {
-            // Pole 1: Czas UTC (hhmmss.sss). Przechowujemy go w time_field.
-            case 1: 
-                strncpy(time_field, token, 10); 
-                time_field[10] = '\0'; // Zapewnienie null-terminatora
-                break;
-
-            // Pole 2: Status A/V. 'A' (Active) = Fix jest ważny.
-            case 2: 
-                fix_valid = (token[0] == 'A'); 
-                break;
-                
-            // Pole 7: Prędkość nad ziemią w węzłach (knots).
-            case 7: 
-                // Konwersja na float i przeliczenie na km/h (1 węzeł ≈ 1.852 km/h)
-                speed_knots = atof(token);
-                speed_kmh = speed_knots * 1.852f;
-                break;
-
-            // Pole 9: Data (DDMMYY). Przechowujemy ją w date_field.
-            case 9: 
-                strncpy(date_field, token, 6); 
-                date_field[6] = '\0'; // Zapewnienie null-terminatora
-                break;
-        }
-
-        token = strtok(NULL, ",");
-        field_idx++;
-    }
-}
-```
-
-
 ### Wyświetlanie danych na OLED SSD1306 w 6 liniach
 
 ```c
