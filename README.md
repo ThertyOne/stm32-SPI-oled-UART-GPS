@@ -192,7 +192,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
     }
 }
 ```
-## 🧩 Fragmenty kodu – pętla główna
+## Petla główna
 ```c
 // Wewnątrz while (1)
 while (1)
@@ -226,7 +226,6 @@ while (1)
     HAL_Delay(100);
 }
 ```
-## 🧩 Fragmenty kodu – parsowanie i obróbka danych
 ### Konwersja współrzędnych NMEA → stopnie dziesiętne
 
 ```c
@@ -249,35 +248,6 @@ float convertNMEAToDecimal(const char* nmea)
     // 41 + (7.038 / 60.0f) = 41.1173
     return degrees + minutes / 60.0f;
 }
-```
-
-### Parsowanie danych
-
-```mermaid
-flowchart TD
-  A[START: main - Inicjalizacja] --> B{Pętla nieskończona: while}
-
-  subgraph Pętla_Glowna["co 100 ms"]
-    B --> C[SSD1306_Clear]
-    C --> D{gps_line_ready == 1?}
-    D -- "TAK" --> E[gps_line_ready = 0]
-    D -- "NIE" --> H
-
-    E --> F{Sprawdź prefiks gps_buffer}
-
-    F -- "$GPGGA" --> F1[parseGGA / Aktualizacja: Lat, Lon, Alt, Satelity]
-    F -- "$GPRMC" --> F2[parseRMC / Aktualizacja: Status Fix, Data, Prędkość]
-    F1 --> H
-    F2 --> H
-
-    H[formatAndDisplayData / Konwersja i formatowanie danych GPS na tekst]
-    H --> I[GFX_DrawString / Rysowanie 6 linii tekstu na buforze OLED]
-    I --> J[SSD1306_Display/ Wysyłka bufora do wyświetlacza]
-    J --> K[HAL_Delay]
-    K --> B
-  end
-
-
 ```
 
 ### Wyświetlanie danych na OLED SSD1306 w 6 liniach
@@ -310,4 +280,33 @@ if (satellites > 0) {
     sprintf(lines[3], "Waiting for data...");
 }
 ```
+### Logika parsowania danych
+```mermaid
+flowchart TD
+E --> F{Sprawdź prefiks gps_buffer}
 
+F -- "$GPGGA" --> G[parseGGA]
+G --> G1[Skopiuj linię do bufora tymczasowego]
+G1 --> G2[Tokenizuj po przecinkach]
+G2 --> G3[Iteruj po polach]
+G3 --> G4{Pole?}
+G4 -- "czas, pozycja, wysokość, satelity" --> G5[Aktualizuj odpowiednie zmienne]
+G4 -- "inne" --> G6[Ignoruj]
+G5 --> G3
+G6 --> G3
+G3 --> H
+
+F -- "$GPRMC" --> R[parseRMC]
+R --> R1[Skopiuj linię do bufora tymczasowego]
+R1 --> R2[Tokenizuj po przecinkach]
+R2 --> R3[Iteruj po polach]
+R3 --> R4{Pole?}
+R4 -- "czas, status, prędkość, data" --> R5[Aktualizuj odpowiednie zmienne]
+R4 -- "inne" --> R6[Ignoruj]
+R5 --> R3
+R6 --> R3
+R3 --> H
+
+H[formatAndDisplayData / przygotowanie danych do wyświetlenia]
+
+```
