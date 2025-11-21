@@ -60,9 +60,9 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 char gps_buffer[GPS_BUFFER_SIZE];
-// --- BUFORY NA RAMKI GPS ---
-char gga_buffer[GPS_BUFFER_SIZE]; // Bufor na ostatnią ramkę $GPGGA
-char rmc_buffer[GPS_BUFFER_SIZE]; // Bufor na ostatnią ramkę $GPRMC
+// BUFORY NA RAMKI GPS
+char gga_buffer[GPS_BUFFER_SIZE]; // Bufor na ramkę $GPGGA
+char rmc_buffer[GPS_BUFFER_SIZE]; // Bufor na ramkę $GPRMC
 
 volatile uint16_t gps_idx = 0;       // indeks do bufora GPS
 volatile uint8_t gps_line_ready = 0; // flaga gotowej linii
@@ -93,76 +93,76 @@ void MX_SPI1_Init(void);
 void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
-/// Funkcja dzieląca tekst na linie o maksymalnej długości MAX_CHARS_PER_LINE
+///Funkcja dzieląca tekst na linie o maksymalnej długości MAX_CHARS_PER_LINE mieszczacej sie na wyswietlaczu
 void SplitTextSimple(const char *input, char lines[MAX_LINES][MAX_CHARS_PER_LINE+1])
 {
-    int start = 0; // indeks początkowy w tekście do kopiowania
-    for(int i = 0; i < MAX_LINES; i++) { // iteracja po wszystkich liniach
+    int start = 0; //indeks początkowy w tekście do kopiowania
+    for(int i = 0; i < MAX_LINES; i++) { //iteracja po wszystkich liniach
         int j;
-        // kopiujemy znaki do bieżącej linii
-        // maksymalnie MAX_CHARS_PER_LINE znaków lub do końca stringu
+        //kopiujemy znaki do bieżącej linii
+        //max znaków (MAX_CHARS_PER_LINE) lub do końca stringu
         for(j = 0; j < MAX_CHARS_PER_LINE && input[start+j] != '\0'; j++) {
             lines[i][j] = input[start+j];
         }
-        lines[i][j] = '\0'; // dodanie znaku końca stringu
-        start += MAX_CHARS_PER_LINE; // przesunięcie indeksu startowego do kolejnego fragmentu tekstu
+        lines[i][j] = '\0'; //dodanie znaku końca stringu
+        start += MAX_CHARS_PER_LINE; //przesunięcie indeksu startowego do kolejnego fragmentu tekstu
     }
 }
 
-// Konwersja współrzędnych z formatu NMEA (ddmm.mmmm) na stopnie dziesiętne
+//Konwersja wspolrzędnych z formatu NMEA (ddmm.mmmm) na decimal
 float convertNMEAToDecimal(const char* nmea)
 {
-    float val = atof(nmea);          // konwersja stringa na liczbę zmiennoprzecinkową
-    int degrees = (float)((int)(val / 100.0f));  // część całkowita to stopnie
-    float minutes = val - (degrees * 100.0f); // reszta to minuty
-    return degrees + minutes / 60.0f;  // zamiana minut na stopnie dziesiętne i zwrócenie wartości
+    float val = atof(nmea);          //konwersja stringa na liczbę zmiennoprzecinkową
+    int degrees = (float)((int)(val / 100.0f));  //częsc calkowita to stopnie
+    float minutes = val - (degrees * 100.0f); //reszta to minuty
+    return degrees + minutes / 60.0f;  //zamiana minut na stopnie dziesiętne i zwrocenie wartosci
 }
 
-// Parsowanie linii GGA z GPS na zmienne globalne
+//Parsowanie linii GGA z GPS na zmienne globalne
 void parseGGA(const char* line)
 {
     char copy[GPS_BUFFER_SIZE];
-    strcpy(copy, line); // kopiujemy linię, bo strtok modyfikuje string
+    strcpy(copy, line); //kopiujemy linie, bo strtok modyfikuje string
 
     char *token;
     int field_idx = 0;
 
-    // dzielimy linię po przecinkach
+    //dzielimy linie po przecinkach
     token = strtok(copy, ",");
     while(token != NULL) {
         switch(field_idx) {
-            case 1: // pole czasu (hhmmss.sss)
+            case 1: //pole czasu (hhmmss.sss)
                 strncpy(time_field, token, sizeof(time_field)-1);
                 time_field[sizeof(time_field)-1] = '\0';
                 break;
-            case 2: // szerokość geograficzna (ddmm.mmmm)
+            case 2: //szerokosc geo
                 latitude = convertNMEAToDecimal(token);
                 break;
-            case 3: // N/S
+            case 3: //N/S
                 ns = token[0];
-                if(ns == 'S') latitude = -latitude; // jeśli południe, wartość ujemna
+                if(ns == 'S') latitude = -latitude; //jesli poludnie, wartosc ujemna
                 break;
-            case 4: // długość geograficzna (dddmm.mmmm)
+            case 4: //dlugosc geo
                 longitude = convertNMEAToDecimal(token);
                 break;
-            case 5: // E/W
+            case 5: //E/W
                 ew = token[0];
-                if(ew == 'W') longitude = -longitude; // jeśli zachód, wartość ujemna
+                if(ew == 'W') longitude = -longitude; //jesli zachd, wartosc ujemna
                 break;
-            case 7: // liczba satelitów
-                satellites = atoi(token);
+            case 7: // liczba satelitow
+                satellites = atoi(token); //string -> int
                 break;
-            case 9: // wysokość nad poziomem morza (w metrach)
-                altitude = atof(token); // <-- DODAJ PARSOWANIE WYSOKOŚCI
+            case 9: //wysokosc NPM
+                altitude = atof(token); //string -> float
             default:
-                break; // inne pola ignorujemy
+                break; //inne pola ignorujemy
         }
         field_idx++;
-        token = strtok(NULL, ","); // przechodzimy do następnego pola
+        token = strtok(NULL, ","); //przechodzimy do nastepnego pola
     }
 }
 
-// Parsowanie ramki RMC (czas, data, prędkość)
+//Parsowanie ramki RMC (czas, data, prędkosc)
 void parseRMC(const char* line)
 {
     char copy[GPS_BUFFER_SIZE];
@@ -175,20 +175,20 @@ void parseRMC(const char* line)
     {
         switch(field_idx)
         {
-            case 1: // czas
+            case 1: //czas
                 strncpy(time_field, token, sizeof(time_field)-1);
                 break;
 
-            case 2: // status A/V
+            case 2: //status A/V
                 fix_valid = (token[0] == 'A');
                 break;
 
-            case 7: // prędkość w węzłach
+            case 7: //predkosc w wezlach
                 speed_knots = atof(token);
                 speed_kmh = speed_knots * 1.852f;
                 break;
 
-            case 9: // data DDMMYY
+            case 9: //data DDMMYY
                 strncpy(date_field, token, sizeof(date_field)-1);
                 break;
         }
@@ -199,7 +199,7 @@ void parseRMC(const char* line)
 }
 
 void addNewLine(const char* line) {
-    // przesuwamy stare linie w dół
+    //przesuwamy stare linie w dol
     for(int i = MAX_LINES-1; i > 0; i--) {
         strncpy(last_lines[i], last_lines[i-1], GPS_BUFFER_SIZE-1);
         last_lines[i][GPS_BUFFER_SIZE-1] = 0;
@@ -208,35 +208,34 @@ void addNewLine(const char* line) {
     last_lines[0][GPS_BUFFER_SIZE-1] = 0;
 }
 
-/// Funkcja dzieląca tekst na linie o maksymalnej długości MAX_CHARS_PER_LINE
-/// Wypełnia tablicę 'lines' rozpoczynając od podanego 'start_line_index'
+///Funkcja dzielaca tekst na linie o maksymalnej dlugosci MAX_CHARS_PER_LINE
+///Wypelnia tablicę 'lines' rozpoczynajac od podanego 'start_line_index'
 void SplitTextWithIndex(const char *input, char lines[MAX_LINES][MAX_CHARS_PER_LINE+1], int start_line_index)
 {
-    int start = 0; // indeks początkowy w tekście do kopiowania
-    for(int i = start_line_index; i < MAX_LINES; i++) { // iteracja po liniach, zaczynamy od 'start_line_index'
+    int start = 0; // indeks poczatkowy w tekście do kopiowania
+    for(int i = start_line_index; i < MAX_LINES; i++) { //iteracja po liniach, zaczynamy od 'start_line_index'
         int j;
 
-        // Jeśli tekst wejściowy się skończył, wychodzimy
+        //Jeśli tekst wejściowy się skończył, wychodzimy
         if (input[start] == '\0') break;
 
-        // kopiujemy znaki do bieżącej linii
+        //kopiujemy znaki do bieżącej linii
         for(j = 0; j < MAX_CHARS_PER_LINE && input[start+j] != '\0'; j++) {
             lines[i][j] = input[start+j];
         }
-        lines[i][j] = '\0'; // dodanie znaku końca stringu
+        lines[i][j] = '\0'; //dodanie znaku końca stringu
 
-        start += MAX_CHARS_PER_LINE; // przesunięcie indeksu startowego do kolejnego fragmentu tekstu
+        start += MAX_CHARS_PER_LINE; //przesunięcie indeksu startowego do kolejnego fragmentu tekstu
     }
 }
 
-// Funkcja do formatowania i wyświetlania danych z globalnych zmiennych
+//Funkcja do formatowania i wyświetlania danych z globalnych zmiennych
 void formatAndDisplayData(char lines[MAX_LINES][MAX_CHARS_PER_LINE+1])
 {
-    // Czas NMEA: hhmmss.sss (10 znaków + '\0')
-    char formatted_time[9]; // Wystarczy na hh:mm:ss + '\0'
-    char formatted_date[9]; // Wystarczy na DD/MM/YY + '\0'
+    char formatted_time[9]; //hh:mm:ss + '\0'
+    char formatted_date[9]; //DD/MM/YY + '\0'
 
-    // 1. FORMATOWANIE CZASU
+    //FORMATOWANIE CZASU
     if (strlen(time_field) >= 6) {
         strncpy(formatted_time, time_field, 2);
         formatted_time[2] = ':';
@@ -248,7 +247,7 @@ void formatAndDisplayData(char lines[MAX_LINES][MAX_CHARS_PER_LINE+1])
         strcpy(formatted_time, "--:--:--");
     }
 
-    // 2. FORMATOWANIE DATY <-- PRZYWRÓCONE!
+    //FORMATOWANIE DATY
     if (strlen(date_field) >= 6) {
         strncpy(formatted_date, date_field, 2);
         formatted_date[2] = '/';
@@ -261,36 +260,34 @@ void formatAndDisplayData(char lines[MAX_LINES][MAX_CHARS_PER_LINE+1])
     }
 
 
-    // Czyścimy WSZYSTKIE 6 linii (indeksy 0-5)
+    //Clear wszystkie 6 linii (indeksy 0-5)
     for (int i = 0; i < MAX_LINES; i++) {
         memset(lines[i], 0, MAX_CHARS_PER_LINE+1);
     }
 
-    // --- 6 LINII DANYCH ---
-
-    // Linia 0: DATA i Status FIX
+    //linia 0 - data i status
     char *fix_status = fix_valid ? "(A)" : "(V)";
     sprintf(lines[0], "Date: %s | %s", formatted_date, fix_status);
 
-    // Linia 1: Czas
+    //linia 1 - czas
     sprintf(lines[1], "Time: %s", formatted_time);
 
-    // Linia 2: Prędkość i Liczba Satelitów <-- PRZYWRÓCONA!
+    //linia 2 - opcjonalna ilosc satelitow i predkosc
     //sprintf(lines[2], "Sat: %d Spd: %.1f km/h", satellites, speed_kmh);
 
-    // Sprawdzenie, czy mamy dane pozycji
+    //jesli mamy dane to:
     if (satellites > 0) {
-        // Linia 3: Szerokość Geograficzna (Latitude)
+        //linia 3 - szerokosc geo
         sprintf(lines[3], "Lat: %.3f %c", fabsf(latitude), ns);
 
-        // Linia 4: Długość Geograficzna (Longitude)
+        //linia 4 - dlugosc geo
         sprintf(lines[4], "Lon: %.3f %c", fabsf(longitude), ew);
 
-        // Linia 5: Wysokość n.p.m.
+        //linia 5 - wysokosc NPM
         sprintf(lines[5], "Alt: %.1f m", altitude);
 
     } else {
-        // Jeśli nie ma fixa, wyświetlamy komunikat w Linii 3 (po Sat/Speed)
+        //jesli nie ma danych to czekamy...
         sprintf(lines[3], "Waiting for data...");
     }
 }
@@ -336,25 +333,22 @@ int main(void)
   MX_GPIO_Init();
   MX_SPI1_Init();
 
-  // RESET fizyczny
+  //RESET fizyczny
   HAL_GPIO_WritePin(SSD1306_RESET_GPIO_Port, SSD1306_RESET_Pin, GPIO_PIN_RESET);
   HAL_Delay(50);
   HAL_GPIO_WritePin(SSD1306_RESET_GPIO_Port, SSD1306_RESET_Pin, GPIO_PIN_SET);
   HAL_Delay(50);
 
-  // Inicjalizacja OLED
+  //Inicjalizacja OLED
   SSD1306_SpiInit(&hspi1);
   SSD1306_Init();
   SSD1306_Clear(BLACK);
   SSD1306_Display();
 
-  // Start odbioru UART w trybie przerwań
+  //Start odbioru UART w trybie przerwań
   HAL_UART_Receive_IT(&huart2, &rx_byte, 1);
 
-  // Stała linia u góry
-  //char top_line[] = "kocham piotrusia";
-
-  char lines[MAX_LINES][MAX_CHARS_PER_LINE+1]; // dolna linia dynamiczna
+  char lines[MAX_LINES][MAX_CHARS_PER_LINE+1];
   memset(lines, 0, sizeof(lines));
 
   /* USER CODE END 2 */
@@ -364,43 +358,43 @@ int main(void)
   while (1)
   {
 	  SSD1306_Clear(BLACK);
-	      GFX_SetFont(font_8x5);
+	  GFX_SetFont(font_8x5);
 
-	      //ZAWSZE parsuj i aktualizuj dane globalne, jeśli przyszła nowa ramka
+	      //jesli przyszła nowa ramka -> parsuj i aktualizuj dane
 	      if (gps_line_ready) {
 	          gps_line_ready = 0;
 
 	          if (strncmp(gps_buffer, "$GPGGA", 6) == 0) {
 	              strncpy(gga_buffer, gps_buffer, GPS_BUFFER_SIZE - 1);
 	              gga_buffer[GPS_BUFFER_SIZE - 1] = '\0';
-	              parseGGA(gga_buffer); // Aktualizuje czas, satelity, lat/lon
+	              parseGGA(gga_buffer); //aktualizacja czasu, satelity, szer/dlu geo
 
 	          }
 	          else if (strncmp(gps_buffer, "$GPRMC", 6) == 0) {
 	              strncpy(rmc_buffer, gps_buffer, GPS_BUFFER_SIZE - 1);
 	              rmc_buffer[GPS_BUFFER_SIZE - 1] = '\0';
-	              parseRMC(rmc_buffer); // Aktualizuje status fixa, prędkość
+	              parseRMC(rmc_buffer); //aktualizacja fix i predkosci
 	          }
 	      }
 
-	      // 2. Formatowanie czytelnych danych na górne linie
+	      //formatowanie czytelnych danych na górne linie
 	      formatAndDisplayData(lines);
 
-	      // 3. Opcjonalne: Wyświetlanie surowej ramki RMC na dole (diagnostyka)
+	      //opcjonalne wyswietlanie surowej ramki RMC na dole -> dobrze przy debugu
 
 	      /*
-			Wyswietlenie calosci bufforow z istotnymi danymi
+		  //wyswietlenie calosci bufforow
 	      if (rmc_buffer[0] != '\0') {
-	                // Ramka RMC zostanie rozbita i wyświetlona od INDEKSU 3 (Linia 4)
+	                //ramka RMC rozbita i wyswietlona od lini 4
 	                SplitTextWithIndex(rmc_buffer, lines, 4);
 	            }
 	      if (gga_buffer[0] != '\0') {
+	      	  	    //ramka GGA rozbita i wyswietlona od lini 5
 	                SplitTextWithIndex(gga_buffer, lines, 5);
-	            }<>><,,tyr
+	            }
+	       */
 
-
-*/
-	      //Wyświetlanie całości
+	      //wyświetlanie całości
 	      for (int i = 0; i < MAX_LINES; i++) {
 	          if (lines[i][0] != '\0') {
 	              GFX_DrawString(0, i * 10, lines[i], WHITE, BLACK);
@@ -510,24 +504,24 @@ void MX_USART2_UART_Init(void)
 /* USER CODE BEGIN 4 */
 
 
-// Callback przerwania UART – odbiór po 1 bajcie
+//callback przerwania UART – odbior po 1 bajcie
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-    if(huart->Instance == USART2) {
+    if(huart->Instance == USART2) { //jesli przerwanie przychodzi z USART
 
-        if(rx_byte != '\n' && rx_byte != '\r') {
+        if(rx_byte != '\n' && rx_byte != '\r') {//dodajemy znak po znaku do bufora jesli jest zwykly
             if(gps_idx < GPS_BUFFER_SIZE - 1) {
                 gps_buffer[gps_idx++] = rx_byte;
             }
         } else {
-            if(gps_idx > 0) { // mamy jakiekolwiek dane w buforze
+            if(gps_idx > 0) { //mamy jakiekolwiek dane w buforze - konczymy linie
                 gps_buffer[gps_idx] = '\0';
                 gps_line_ready = 1;
                 gps_idx = 0;
             }
         }
 
-        HAL_UART_Receive_IT(&huart2, &rx_byte, 1);
+        HAL_UART_Receive_IT(&huart2, &rx_byte, 1);//ponowne uruchomienie odbioru
     }
 }
 
